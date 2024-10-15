@@ -103,10 +103,13 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.13"
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          cache-dependency-glob: "**/pyproject.toml"
       - name: Install Dependencies
         if: steps.setup-uv.outputs.cache-hit != 'true'
-        run: |
-          uv pip install --system .[optionals,testing]
+        run: uv pip install --system .[optionals,testing]
       - name: Test
         run: >
           bash scripts/test.sh
