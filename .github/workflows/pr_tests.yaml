@@ -61,20 +61,16 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
       - uses: astral-sh/setup-uv@v3
         with:
           enable-cache: true
           cache-dependency-glob: |
-            pyproject.toml
-          version: "latest"
+            **/pyproject.toml
+      - name: Set up Python
+        run: uv python install ${{ matrix.python-version }}
       - name: Install Dependencies
         if: steps.setup-uv.outputs.cache-hit != 'true'
-        run: |
-          uv pip install --system .[optionals,testing]
+        run: uv pip install --system .[optionals,testing]
       - name: Install Pydantic v1
         if: matrix.pydantic-version == 'pydantic-v1'
         run: uv pip install --system "pydantic>=1.10.0,<2.0.0"
