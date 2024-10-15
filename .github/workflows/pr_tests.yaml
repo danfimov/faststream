@@ -26,6 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SKIP: "docs"
+      UV_CACHE_DIR: ".cache/uv"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -66,11 +67,16 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - uses: astral-sh/setup-uv@v3
+      - uses: actions/cache@v4
+        id: cache
         with:
-          enable-cache: true
-          cache-dependency-glob: "**/pyproject.toml"
+          path: ${{ env.UV_CACHE_DIR }}
+          key: ${{ runner.os }}-uv-${{ hashFiles('pyproject.toml') }}
+          restore-keys: |
+            uv-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
+            uv-${{ runner.os }}
       - name: Install Dependencies
-        if: steps.setup-uv.outputs.cache-hit != 'true'
+        if: steps.cache.outputs.cache-hit != 'true'
         run: uv pip install --system .[optionals,testing]
       - name: Install Pydantic v1
         if: matrix.pydantic-version == 'pydantic-v1'
@@ -93,6 +99,8 @@ jobs:
           path: coverage
           if-no-files-found: error
           include-hidden-files: true
+      - name: Minimize uv cache
+        run: uv cache prune --ci
 
   test-macos-latest:
     if: github.event.pull_request.draft == false
@@ -103,12 +111,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-      - uses: astral-sh/setup-uv@v3
-        with:
-          enable-cache: true
-          cache-dependency-glob: "**/pyproject.toml"
       - name: Install Dependencies
-        if: steps.setup-uv.outputs.cache-hit != 'true'
+        if: steps.cache.outputs.cache-hit != 'true'
         run: uv pip install --system .[optionals,testing]
       - name: Test
         run: >
@@ -125,9 +129,8 @@ jobs:
         with:
           python-version: "3.13"
       - name: Install Dependencies
-        if: steps.setup-uv.outputs.cache-hit != 'true'
-        run: |
-          uv pip install --system .[optionals,testing]
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: uv pip install --system .[optionals,testing]
       - name: Test
         run: >
           bash scripts/test.sh
@@ -143,9 +146,8 @@ jobs:
         with:
           python-version: "3.13"
       - name: Install Dependencies
-        if: steps.setup-uv.outputs.cache-hit != 'true'
-        run: |
-          uv pip install --system .[kafka,test-core,cli]
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: uv pip install --system .[kafka,test-core,cli]
       - name: Test
         run: >
           bash scripts/test.sh
@@ -181,9 +183,8 @@ jobs:
         with:
           python-version: "3.13"
       - name: Install Dependencies
-        if: steps.setup-uv.outputs.cache-hit != 'true'
-        run: |
-          uv pip install --system .[optionals,testing]
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: uv pip install --system .[optionals,testing]
       - run: mkdir coverage
       - name: Test
         run: >
@@ -210,9 +211,8 @@ jobs:
         with:
           python-version: "3.13"
       - name: Install Dependencies
-        if: steps.setup-uv.outputs.cache-hit != 'true'
-        run: |
-          uv pip install --system .[confluent,test-core,cli]
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: uv pip install --system .[confluent,test-core,cli]
       - name: Test
         run: >
           bash scripts/test.sh
@@ -248,9 +248,8 @@ jobs:
         with:
           python-version: "3.13"
       - name: Install Dependencies
-        if: steps.setup-uv.outputs.cache-hit != 'true'
-        run: |
-          uv pip install --system .[optionals,testing]
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: uv pip install --system .[optionals,testing]
       - run: mkdir coverage
       - name: Test
         run: >
@@ -277,9 +276,8 @@ jobs:
         with:
           python-version: "3.13"
       - name: Install Dependencies
-        if: steps.setup-uv.outputs.cache-hit != 'true'
-        run: |
-          uv pip install --system .[rabbit,test-core,cli]
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: uv pip install --system .[rabbit,test-core,cli]
       - name: Test
         run: >
           bash scripts/test.sh
@@ -304,9 +302,8 @@ jobs:
         with:
           python-version: "3.13"
       - name: Install Dependencies
-        if: steps.setup-uv.outputs.cache-hit != 'true'
-        run: |
-          uv pip install --system .[optionals,testing]
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: uv pip install --system .[optionals,testing]
       - run: mkdir coverage
       - name: Test
         run: >
@@ -333,9 +330,8 @@ jobs:
         with:
           python-version: "3.13"
       - name: Install Dependencies
-        if: steps.setup-uv.outputs.cache-hit != 'true'
-        run: |
-          uv pip install --system .[nats,test-core,cli]
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: uv pip install --system .[nats,test-core,cli]
       - name: Test
         run: >
           bash scripts/test.sh
@@ -360,9 +356,8 @@ jobs:
         with:
           python-version: "3.13"
       - name: Install Dependencies
-        if: steps.setup-uv.outputs.cache-hit != 'true'
-        run: |
-          uv pip install --system .[optionals,testing]
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: uv pip install --system .[optionals,testing]
       - run: mkdir coverage
       - name: Test
         run: >
@@ -389,9 +384,8 @@ jobs:
         with:
           python-version: "3.13"
       - name: Install Dependencies
-        if: steps.setup-uv.outputs.cache-hit != 'true'
-        run: |
-          uv pip install --system .[redis,test-core,cli]
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: uv pip install --system .[redis,test-core,cli]
       - name: Test
         run: >
           bash scripts/test.sh
@@ -416,9 +410,8 @@ jobs:
         with:
           python-version: "3.13"
       - name: Install Dependencies
-        if: steps.setup-uv.outputs.cache-hit != 'true'
-        run: |
-          uv pip install --system .[optionals,testing]
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: uv pip install --system .[optionals,testing]
       - run: mkdir coverage
       - name: Test
         run: >
